@@ -1,0 +1,199 @@
+# below is my sample code
+
+import time
+
+import logging
+
+import random
+
+
+
+# ログ設定
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+
+# シミュレーション用データ
+
+snmp_mock_data = {
+
+    "1.3.6.1.2.1.1.3.0": "System Uptime: 15234 seconds",
+
+    "1.3.6.1.2.1.2.2.1.10.1": "Interface 1 RX: 102398 bytes",
+
+    "1.3.6.1.2.1.2.2.1.16.1": "Interface 1 TX: 204857 bytes"
+
+}
+
+
+
+netconf_mock_data = {
+
+    "running-config": """
+
+    <config>
+
+        <interface>
+
+            <name>GigabitEthernet0/1</name>
+
+            <enabled>true</enabled>
+
+        </interface>
+
+    </config>
+
+    """
+
+}
+
+
+
+# ----- SNMP シミュレーション -----
+
+def snmp_get(oid):
+
+    """
+
+    SNMPのGETリクエストを模倣するシミュレーション関数
+
+    """
+
+    logging.info("SNMP GET request for OID: %s", oid)
+
+    start_time = time.time()
+
+   
+
+    # シミュレーション: 応答遅延をランダムに発生
+
+    time.sleep(random.uniform(0.1, 0.5))
+
+   
+
+    result = snmp_mock_data.get(oid, "OID Not Found")
+
+    elapsed = time.time() - start_time
+
+
+
+    logging.info("SNMP Response: %s (Time: %.3f seconds)", result, elapsed)
+
+    return result, elapsed
+
+
+
+# ----- NETCONF シミュレーション -----
+
+def netconf_get_config(datastore="running"):
+
+    """
+
+    NETCONFの<get-config>リクエストを模倣するシミュレーション関数
+
+    """
+
+    logging.info("NETCONF <get-config> request for datastore: %s", datastore)
+
+    start_time = time.time()
+
+   
+
+    # シミュレーション: 応答遅延をランダムに発生
+
+    time.sleep(random.uniform(0.5, 1.0))
+
+   
+
+    result = netconf_mock_data.get(datastore, "<error>Datastore not found</error>")
+
+    elapsed = time.time() - start_time
+
+
+
+    logging.info("NETCONF Response:\n%s\n(Time: %.3f seconds)", result, elapsed)
+
+    return result, elapsed
+
+
+
+# ----- 比較実験 -----
+
+def comparative_evaluation(oid, datastore="running"):
+
+    """
+
+    SNMP と NETCONF の動作をシミュレーションし、結果を比較
+
+    """
+
+    logging.info("=== Comparative Evaluation Start ===")
+
+
+
+    # SNMP シミュレーション
+
+    snmp_result, snmp_time = snmp_get(oid)
+
+
+
+    # NETCONF シミュレーション
+
+    netconf_result, netconf_time = netconf_get_config(datastore)
+
+
+
+    # 結果表示
+
+    logging.info("=== Comparative Evaluation Summary ===")
+
+    logging.info("SNMP GET (OID: %s) Response Time: %.3f seconds", oid, snmp_time)
+
+    logging.info("NETCONF <get-config> Response Time: %.3f seconds", netconf_time)
+
+
+
+    return {
+
+        'snmp': {'result': snmp_result, 'time': snmp_time},
+
+        'netconf': {'result': netconf_result, 'time': netconf_time}
+
+    }
+
+
+
+if __name__ == "__main__":
+
+    # SNMPで取得するOID
+
+    test_oid = "1.3.6.1.2.1.1.3.0"
+
+   
+
+    # NETCONFで取得するデータストア
+
+    test_datastore = "running-config"
+
+   
+
+    results = comparative_evaluation(test_oid, test_datastore)
+
+
+
+    # 結果をファイルに保存
+
+    with open("protocol_comparison_results.txt", "w") as f:
+
+        f.write("=== Comparative Evaluation Results ===\n")
+
+        f.write(f"SNMP result: {results['snmp']['result']}\n")
+
+        f.write(f"SNMP response time: {results['snmp']['time']:.3f} seconds\n")
+
+        f.write(f"NETCONF response time: {results['netconf']['time']:.3f} seconds\n")
+
+
+
+    logging.info("Evaluation completed. Results saved in 'protocol_comparison_results.txt'.")
